@@ -22,7 +22,36 @@ function Get-ClcUri ( [string]$Path ) {
 
 }
 
-function Get-ClcAuthenticationHeader ([PSCredential]$Credential) {
+<#
+.Synopsis
+   Get CenturyLink Cloud Auth Token
+.DESCRIPTION
+   Get an OAuth Token for authenticating with the CenturyLink Cloud API v2.
+.EXAMPLE
+   PS C:\> Get-ClcAuthenticationHeader -Credential user.name
+
+   Name                           Value
+   ----                           -----
+   Authorization                   Bearer abcxyz123...
+.OUTPUTS
+   A hash table containing the authentication parameters for API calls.
+.NOTES
+   Use this API operation before you call any other API operation. It shows a user's roles, primary data center, and a valid bearer token.
+.COMPONENT
+   CenturyLink
+.ROLE
+   API Wrapper
+#>
+function Get-ClcAuthenticationHeader {
+	[CmdletBinding()]
+    [Alias()]
+    [OutputType([System.Collections.Hashtable])]
+    Param ( 
+
+		# Specifies a user account that has permission to send the request.
+		[Parameter(Mandatory, Position=0)]
+		[PSCredential]$Credential 
+	)
 
 	$body = ( 
 		@{
