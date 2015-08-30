@@ -15,13 +15,13 @@ Describe "Get-ClcUri" {
 			$uri.GetType() | Should Be 'Uri'
 		}
 
-		It "Base Uri Should Be 'https://api.ctl.io/v2'"  {			
-			$uri.AbsoluteUri | Should Be 'https://api.ctl.io/v2'
+		It "Base Uri Should Be 'https://api.ctl.io/'"  {			
+			$uri.AbsoluteUri | Should Be 'https://api.ctl.io/'
 		}
 	}
 		Context "With Path, no /" {
 
-		$uri = Get-ClcUri -Path 'authentication/login'
+		$uri = Get-ClcUri -Path "v2/authentication/login"
 	
 		It "Should be TypeOf Uri" {
 			$uri.GetType() | Should Be 'Uri'
@@ -33,7 +33,7 @@ Describe "Get-ClcUri" {
 	}
 		Context "With Path, with /" {
 
-		$uri = Get-ClcUri -Path '/authentication/login'
+		$uri = Get-ClcUri -Path "/v2/authentication/login"
 
 		It "Should be TypeOf Uri" {
 			$uri.GetType() | Should Be 'Uri'
