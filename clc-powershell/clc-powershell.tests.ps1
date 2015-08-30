@@ -45,4 +45,19 @@ Describe "Get-ClcUri" {
 	}
 }
 
+Describe "Get-ClcAuthenticationHeader" {
+	Context "OAuth Token" {
+		Mock -ModuleName clc-powershell -CommandName Invoke-RestMethod -MockWith {return [PSCustomObject]@{userName = 'UserName'; accountAlias = 'ABC'; locationAlias = 'VA1'; roles = '{AccountAdmin}'; bearerToken = 'LCJ1cm46dGllcjM6Y'}}
+
+		$fauxCred = New-Object System.Management.Automation.PSCredential ('test@test.test', (ConvertTo-SecureString 'password' -AsPlainText -Force))
+
+		$testHeader = Get-ClcAuthenticationHeader -Credential $fauxCred
+
+		It "Returns token 'Bearer LCJ1cm46dGllcjM6Y'" {
+			$testHeader.Authorization | Should Be " Bearer LCJ1cm46dGllcjM6Y"
+		}
+	}
+
+}
+
 Remove-Module clc-powershell
