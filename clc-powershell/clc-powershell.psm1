@@ -27,7 +27,7 @@ function Get-ClcAuthenticationHeader ([PSCredential]$Credential) {
 	$body = ( 
 		@{
 			username = $Credential.UserName;
-			password = $Credential.Password | ConvertFrom-SecureString
+			password = $Credential.GetNetworkCredential().Password 
 		} | ConvertTo-Json)
 
 	[Uri]$uri = Get-ClcUri -Path 'authentication/login'
