@@ -80,6 +80,57 @@ function Get-ClcAuthenticationHeader {
 .EXAMPLE
    Another example of how to use this cmdlet
 #>
+function Get-CLCDataCenter
+{
+    [CmdletBinding()]
+    [Alias()]
+    [OutputType([PSCustomObject])]
+    Param
+    (
+        # Param1 help description
+        [Parameter(Mandatory, Position=0)]
+		[System.Collections.Hashtable]
+        $Authentication,
+
+        # Param2 help description
+		[Parameter(Mandatory, Position=1)]
+        [String]
+        $AccountAlias,
+
+		[Parameter(Mandatory, Position=2)]
+		[String]
+		$DataCenter,
+
+		[Parameter()]
+		[Switch]
+		$GroupLink
+    )
+
+	$path = "$VERSION/datacenters/$AccountAlias/$DataCenter"
+
+	if ($GroupLink)
+	{
+		$path += '?groupLinks=true'
+	}
+
+	$uri = Get-ClcUri -Path $path
+
+	$results = Invoke-RestMethod -Uri $uri -Method Get -Headers $Authentication -ContentType 'application/json' 
+
+	Write-Output -InputObject $results
+
+}
+
+<#
+.Synopsis
+   Short description
+.DESCRIPTION
+   Long description
+.EXAMPLE
+   Example of how to use this cmdlet
+.EXAMPLE
+   Another example of how to use this cmdlet
+#>
 function Get-CLCGroup
 {
     [CmdletBinding()]
@@ -151,9 +202,59 @@ function Get-ClcServersFromGroup
 
 	Process 
 	{
+		$results = @()
+
 		if ($PSBoundParameters.InbputObject)
 		{
-			$InbputObject.links | Where-Object {$_.rel -eq 'server'} | ForEach-Object {
+			$list = $InbputObject			
+		}
+		else
+		{
+			$list = Get-CLCGroup -AccountAlias $AccountAlias -GroupId $GroupId -Authentication $Authentication
+		}
+
+		$list | Expand-ClcLink -Relation server -Authentication $Authentication
+	}
+}
+
+<#
+.Synopsis
+   Short description
+.DESCRIPTION
+   Long description
+.EXAMPLE
+   Example of how to use this cmdlet
+.EXAMPLE
+   Another example of how to use this cmdlet
+#>
+function Expand-ClcLink
+{
+    [CmdletBinding(DefaultParameterSetName='Default')]
+    [Alias()]
+    [OutputType([int])]
+    Param
+    (
+        # Param1 help description
+        [Parameter(Mandatory, ValueFromPipeline, Position=0)]
+        $InbputObject,
+
+		# Param1 help description
+        [Parameter(Mandatory, Position=1)]
+		[ValidateSet("billing", "server", "group", "groups")]
+        [String]
+        $Relation,
+
+        # Param1 help description
+        [Parameter(Mandatory, Position=2)]
+        [System.Collections.Hashtable]
+        $Authentication
+    )
+
+	Process 
+	{
+		if ($PSBoundParameters.InbputObject)
+		{
+			$InbputObject.links | Where-Object {$_.rel -eq $Relation} | ForEach-Object {
 				$uri =  Get-ClcUri -Path $_.href
 				Invoke-RestMethod $uri -Method Get -ContentType 'application/json' -Headers $Authentication
 			}
