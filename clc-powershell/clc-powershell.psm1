@@ -227,6 +227,150 @@ function Get-ClcServersFromGroup
 .EXAMPLE
    Another example of how to use this cmdlet
 #>
+function New-ClcServer
+{
+    [CmdletBinding()]
+    [Alias()]
+    [OutputType([PSCustomObject])]
+    Param
+    (
+		# Name of the server to create. Alphanumeric characters and dashes only. Must be between 1-8 characters depending on the length of the account alias. The combination of account alias and server name here must be no more than 10 characters in length. (This name will be appended with a two digit number and prepended with the datacenter code and account alias to make up the final server name.)
+		[Parameter(Mandatory, ValueFromPipelineByPropertyName, Position=0)]
+		[ValidateLength(1,8)]
+		[string]
+		$Name,
+
+		# ID of the parent group. Retrieved from query to parent group, or by looking at the URL on the UI pages in the Control Portal.
+		[Parameter(Mandatory, ValueFromPipelineByPropertyName, Position=1)]
+		[string]
+		$GroupId,
+
+        # ID of the server to use a source. May be the ID of a template, or when cloning, an existing server ID. The list of available templates for a given account in a data center can be retrieved from the Get Data Center Deployment Capabilities API operation. (Ignored for bare metal servers.)
+        [Parameter(Mandatory, ValueFromPipelineByPropertyName, Position=2)]
+		[ValidateSet('BOSH-OPENSTACK-CLC-UBUNTU-TRUSTY-GO_AGENT_2922','BOSH-OPENSTACK-CLC-UBUNTU-TRUSTY-GO_AGENT_3012','BOSH-OPENSTACK-CLC-UBUNTU-TRUSTY-GO_AGENT_3026','BOSH-OPENSTACK-CLC-UBUNTU-TRUSTY-GO_AGENT','BOSH-STEMCELL','VBLK-10
+0-TEMPLATE','BOSH-OPENSTACK-CLC-UBUNTU-TRUSTY-GO_AGENT_2989','CENTOS-5-64-TEMPLATE','CENTOS-6-64-TEMPLATE','DEBIAN-6-64-TEMPLATE','DEBIAN-7-64-TEMPLATE','PXE-TEMPLATE','RHEL-5-64-TEMPLATE','RHEL-6-64-TEMPLATE','RHE
+L-7-64-TEMPLATE','UBUNTU-12-64-TEMPLATE','UBUNTU-14-64-TEMPLATE','WIN2008R2DTC-64','WIN2008R2ENT-64','WIN2008R2STD-64','WIN2012DTC-64','WIN2012R2DTC-64')]
+		[string]
+        $SourceServerID,
+
+        # User-defined description of this server
+		[Parameter(ValueFromPipelineByPropertyName, Position=3)]
+        [string]
+        $Description,
+
+        # Primary DNS to set on the server. If not supplied the default value set on the account will be used.
+		[Parameter(ValueFromPipelineByPropertyName, Position=4)]
+        [string]
+        $PrimaryDns,
+
+		# Secondary DNS to set on the server. If not supplied the default value set on the account will be used.
+		[Parameter(ValueFromPipelineByPropertyName, Position=5)]
+        [string]
+        $SecondaryDns,
+
+		# ID of the network to which to deploy the server. If not provided, a network will be chosen automatically. If your account has not yet been assigned a network, leave this blank and one will be assigned automatically. The list of available networks for a given account in a data center can be retrieved from the Get Data Center Deployment Capabilities API operation.
+		[Parameter(ValueFromPipelineByPropertyName, Position=6)]
+        [string]
+        $NetworkId,
+
+		# IP address to assign to the server. If not provided, one will be assigned automatically. (Ignored for bare metal servers.)
+		[Parameter(ValueFromPipelineByPropertyName, Position=6)]
+        [string]
+        $IpAddress,
+
+		# Password of administrator or root user on server. If not provided, one will be generated automatically.
+		[Parameter(Position=7)]
+        [String]
+        $Password,
+
+		# Number of processors to configure the server with (1-16) (ignored for bare metal servers)
+		[Parameter(Mandatory, ValueFromPipelineByPropertyName, Position=8)]
+		[ValidateRange(1,16)]
+		[int]
+		$Cpu,
+
+		# Number of GB of memory to configure the server with (1-128) (ignored for bare metal servers)
+		[Parameter(Mandatory, ValueFromPipelineByPropertyName, Position=9)]
+		[ValidateRange(1,128)]
+		[int]
+		$MemoryGB,
+
+		# Whether to create a standard, hyperscale, or bareMetal server
+		[Parameter(Mandatory, ValueFromPipelineByPropertyName, Position=10)]
+		[ValidateSet('standard','hyperscale','bareMetal')]
+		[string]
+		$Type,
+
+		# For standard servers, whether to use standard or premium storage. If not provided, will default to premium storage. For hyperscale servers, storage type must be hyperscale. (Ignored for bare metal servers.)
+		[Parameter(ValueFromPipelineByPropertyName, Position=11)]
+		[ValidateSet('standard','premium','hyperscale')]
+		[string]
+		$StorageType,
+
+		# Collection of disk parameters (ignored for bare metal servers) eg. @(@{path="data"; sizeGB=50; type="partitioned"})
+		[Parameter(Mandatory, ValueFromPipelineByPropertyName, Position=11)]
+		[Hashtable[]]
+		$AdditionalDisks,
+
+		# Only required for bare metal servers. Specifies the OS to provision with the bare metal server. Currently, the only supported OS types are redHat6_64Bit, centOS6_64Bit, windows2012R2Standard_64Bit, ubuntu14_64Bit. A list of importable OS types for a given data center can be retrieved from the Get Data Center Bare Metal Capabilities API operation. (Ignored for standard and hyperscale servers.)
+		[Parameter(ValueFromPipelineByPropertyName, Position=12)]
+		[ValidateSet('redHat6_64Bit', 'centOS6_64Bit', 'windows2012R2Standard_64Bit', 'ubuntu14_64Bit')]
+		[string]
+		$OsType,
+
+		# Whether to create the server as managed or not. Default is false. (Ignored for bare metal servers.)
+		[Parameter(ValueFromPipelineByPropertyName)]
+		[switch]
+		$ManagedOS,
+
+		# Whether to add managed backup to the server. Must be a managed OS server. (Ignored for bare metal servers.)
+		[Parameter(ValueFromPipelineByPropertyName)]
+		[switch]
+		$ManagedBackup
+    )
+
+    Begin
+    {
+    }
+    Process
+    {
+		$server = @{}
+
+		$server.Add('name', $Name)
+		$server.Add('groupId', $GroupId)
+		$server.Add('sourceServerid', $SourceServerID)
+		$server.Add('cpu', $Cpu)
+		$server.Add('memoryGB', $MemoryGB)
+		$server.Add('type', $Type)
+		
+		if (![string]::IsNullOrWhiteSpace($Description) { $server.Add('description', $Description) }
+		if (![string]::IsNullOrWhiteSpace($PrimaryDns)) { $server.Add('primaryDns', $PrimaryDns) }
+		if (![string]::IsNullOrWhiteSpace($SecondaryDns)) { $server.Add('secondaryDns', $SecondaryDns) }
+		if (![string]::IsNullOrWhiteSpace($NetworkId)) { $server.Add('networkId', $NetworkId) }
+		if (![string]::IsNullOrWhiteSpace($IpAddress)) { $server.Add('ipAddress', $IpAddress) }
+		if (![string]::IsNullOrWhiteSpace($StorageType)) { $server.Add('storageType', $StorageType) }
+		if ($AdditionalDisks -ne $null) { $server.Add('additionalDisks', ($AdditionalDisks | ConvertTo-Json -Depth 2 -Compress)) }
+		if (![string]::IsNullOrWhiteSpace($OsType)) { $server.Add('osType', $OsType) }
+		if ($ManagedOS) { $server.Add('isManagedOS', $true) }
+		if ($ManagedBackup) { $server.Add('isManagedBackup', $true) }
+
+		Write-Output -InputObject $server
+    }
+    End
+    {
+    }
+}
+
+<#
+.Synopsis
+   Short description
+.DESCRIPTION
+   Long description
+.EXAMPLE
+   Example of how to use this cmdlet
+.EXAMPLE
+   Another example of how to use this cmdlet
+#>
 function Expand-ClcLink
 {
     [CmdletBinding(DefaultParameterSetName='Default')]

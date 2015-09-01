@@ -11,7 +11,38 @@ To install in your personal modules folder (e.g. ~\Documents\WindowsPowerShell\M
 iex (new-object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/cdhunt/clc-powershell/master/install.ps1')
 ```
 
-# Example Usage Report
+# Example
+
+## New Servers
+
+```powershell
+$servers = @()
+
+$servers += [pscustomobject]@{name = "one"
+            description = "powershell FTW"
+            groupId = '461c0497899e4f49b398987a310383db'
+            sourceServerid = 'CENTOS-6-64-TEMPLATE'
+            cpu = 4
+            memoryGB = 16
+            type = "standard"
+            additionalDisks = @{path="data"; sizeGB=200; type="partitioned"}
+            managedOS = $true
+            StorageType = 'standard'}
+
+$servers += [pscustomobject]@{name = "two"
+            description = "powershell FTW"
+            groupId = '0e8a572112f547339eb0945ca1d50af0'
+            sourceServerid = 'CENTOS-6-64-TEMPLATE'
+            cpu = 1
+            memoryGB = 2
+            type = "standard"
+            osType = "centOS6_64Bit"
+            additionalDisks = @(@{path="data"; sizeGB=50; type="partitioned"})}
+
+$servers | New-ClcServer
+```
+
+## Usage Report
 
 Here is an example script that utilizes this module to get Group and Server details.
 
