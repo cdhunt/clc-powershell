@@ -343,7 +343,7 @@ L-7-64-TEMPLATE','UBUNTU-12-64-TEMPLATE','UBUNTU-14-64-TEMPLATE','WIN2008R2DTC-6
 		$server.Add('memoryGB', $MemoryGB)
 		$server.Add('type', $Type)
 		
-		if (![string]::IsNullOrWhiteSpace($Description) { $server.Add('description', $Description) }
+		if (![string]::IsNullOrWhiteSpace($Description)) { $server.Add('description', $Description) }
 		if (![string]::IsNullOrWhiteSpace($PrimaryDns)) { $server.Add('primaryDns', $PrimaryDns) }
 		if (![string]::IsNullOrWhiteSpace($SecondaryDns)) { $server.Add('secondaryDns', $SecondaryDns) }
 		if (![string]::IsNullOrWhiteSpace($NetworkId)) { $server.Add('networkId', $NetworkId) }
