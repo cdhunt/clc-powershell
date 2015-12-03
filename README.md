@@ -11,7 +11,7 @@ To install in your personal modules folder (e.g. ~\Documents\WindowsPowerShell\M
 iex (new-object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/cdhunt/clc-powershell/master/install.ps1')
 ```
 
-# Example
+# Examples
 
 ## New Servers
 
@@ -36,7 +36,6 @@ $servers += [pscustomobject]@{name = "two"
             cpu = 1
             memoryGB = 2
             type = "standard"
-            osType = "centOS6_64Bit"
             additionalDisks = @(@{path="data"; sizeGB=50; type="partitioned"})}
 
 $servers | New-ClcServer
